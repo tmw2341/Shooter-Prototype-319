@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Login</title>
+    <script src="./login.js"></script>
+    <style>
+        body {
+            background-color: lightgray;
+            outline-color: black;
+            height: 200px;
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <form>
+            <div style="alighn:right">
+        Enter a username:
+        <input type="text" name="userName" id="username" value=""/>
+        <br />
+        <br />
+        <input type="radio" name="connection" id="ipRadio" /> Connect to:   <input type="text" name="ipAddress" id="ip"/>
+        <br />
+        <font size="1">Use the form XXX.XXX.XXX.XX</font>
+            <br /><font size="1">or XXX.XXX.XXX.XX:XXXXX</font>
+        <br />
+        <input type="radio" name="connection" id="host" /> Host
+        <br />
+        <div/>
+        <button type="button" onclick="if (validateUserName(document.getElementById('username').value)){window.location.href = 'game.html'}" style="position:center">Connect</button>
+    </form>
+</body>
+</html>
