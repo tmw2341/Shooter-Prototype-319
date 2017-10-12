@@ -1,21 +1,23 @@
-// JavaScript source code
 function startGame() {
     init();
     myGameArea.start();
-    myGameArea.pieces.push(new component(30, 30, "red", 30, 30));
-    myGameArea.pieces.push(new component(30, 30, "red", 60, 30));
+    myGameArea.pieces.push(new component(30, 30, "red", 30, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
+    myGameArea.pieces.push(new component(30, 30, "red", 60, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
 }
 
 var myGameArea = {
+    username: localStorage.getItem('username'),
     pieces: [],
     canvas: null,
     start: function () {
         this.context = this.canvas.getContext('2d');
         this.interval = setInterval(updateGameArea, 20);
         window.addEventListener('mousedown', function (e) {
-            myGameArea.move = true;
-            myGameArea.x = e.pageX;
-            myGameArea.y = e.pageY;
+            if (e.pageX > 0 && e.pageY > 0) {
+                myGameArea.move = true;
+                myGameArea.x = e.pageX;
+                myGameArea.y = e.pageY;
+            }
         })
         window.addEventListener('mouseup', function (e) {
             myGameArea.move = false;
@@ -42,7 +44,9 @@ function init(){
     myGameArea.canvas = document.getElementById('canvas');
 }
 
-function component(width, height, color, x, y) {
+function component(width, height, color, x, y, username, id) {
+    this.id = id;
+    this.username = username;
     this.width = width;
     this.height = height;
     this.x = x;
@@ -50,67 +54,50 @@ function component(width, height, color, x, y) {
     this.speedX = 0;
     this.speedY = 0;
     this.color = color;
-    this.newPos = function () {
-        this.x += this.speedX;
-        this.y += this.speedY;
-    }
     this.update = function () {
         ctx = myGameArea.context;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
     this.clicked = function () {
-        var myleft = this.x + (document.documentElement.clientWidth * 0.02);
-        var myright = this.x + ((this.width) + document.documentElement.clientWidth * 0.02);
-        var mytop = this.y + (document.documentElement.clientHeight * 0.02);
-        var mybottom = this.y + ((this.height) + document.documentElement.clientHeight * 0.02);
-        var clicked = false;
+        let myleft = this.x + myGameArea.canvas.getBoundingClientRect().left;
+        let myright = this.x + ((this.width) + myGameArea.canvas.getBoundingClientRect().left);
+        let mytop = this.y + myGameArea.canvas.getBoundingClientRect().top;
+        let mybottom = this.y + ((this.height) + myGameArea.canvas.getBoundingClientRect().top);
+        let clicked = false;
         if ((mybottom > myGameArea.y) && (mytop < myGameArea.y)
             && (myright > myGameArea.x) && (myleft < myGameArea.x)) {
+            console.log(this.id + " has been clicked");
             clicked = true;
         }
         return clicked;
     }
 }
 
+function posDebug() {
+    for (i = 0; i < myGameArea.pieces.length; ++i) {
+        console.log(myGameArea.username + ": Box " + myGameArea.pieces[i].id + " is located at: " + myGameArea.pieces[i].x + " " + myGameArea.pieces[i].y);
+    }
+}
+
 function updateGameArea() {
     myGameArea.clear();
     for (i = 0; i < myGameArea.pieces.length; ++i){
-        if (myGameArea.x && myGameArea.y && myGameArea.newX && myGameArea.newY) {
+        if (myGameArea.pieces[i].clicked() && myGameArea.pieces[i].username == myGameArea.username) {
+            myGameArea.pieces[i].color = "yellow";
+            if (myGameArea.y < 0 || myGameArea.newY < 0 || myGameArea.x < 0 || myGameArea.newX < 0) {
+                break;
+            }
+            if (Math.abs(myGameArea.y - myGameArea.newY) > 50 || Math.abs(myGameArea.x - myGameArea.newX) > 50) {
+                break;
+            }
             myGameArea.pieces[i].x -= myGameArea.x - myGameArea.newX;
             myGameArea.pieces[i].y -= myGameArea.y - myGameArea.newY;
             myGameArea.x = myGameArea.newX;
             myGameArea.y = myGameArea.newY;
-        }
-        if (myGameArea.pieces[i].clicked()) {
-            myGameArea.pieces[i].color = "yellow";
-            myGameArea.pieces[i].newPos();
-            myGameArea.pieces[i].update();
         } else {
             myGameArea.pieces[i].color = "red";
         }
-        myGameArea.pieces[i].newPos();
         myGameArea.pieces[i].update();
     }
-}
-
-function moveup() {
-    myGameArea.pieces[1].speedY -= 1;
-}
-
-function movedown() {
-    myGameArea.pieces[1].speedY += 1;
-}
-
-function moveleft() {
-    myGameArea.pieces[1].speedX -= 1;
-}
-
-function moveright() {
-    myGameArea.pieces[1].speedX += 1;
-}
-    
-function stopMove() {
-    myGameArea.pieces[1].speedX = 0;
-    myGameArea.pieces[1].speedY = 0;
 }

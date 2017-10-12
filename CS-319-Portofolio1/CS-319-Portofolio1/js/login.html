@@ -31,7 +31,10 @@
         <br />
         <input type="radio" name="connection" id="host" /> Host
         <br />
-        <button type="button" onclick="if (validateUserName(document.getElementById('username').value)){window.location.href = 'game.html'}" style="position:center">Connect</button>
+        <button type="button" onclick="
+    if (validateUserName(document.getElementById('username').value));
+    localStorage.setItem('username', document.getElementById('username').value);
+    window.location.href = 'game.html';" style="position:center">Connect</button>
     </form>
 </body>
 </html>
