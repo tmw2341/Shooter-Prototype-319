@@ -26,8 +26,8 @@ def new_unt():
 
     global units
 
-    if data['owner'] & data['posx'] & data['posy'] & data['unit_id']:
-        unit = []
+    if data['owner'] and data['posx'] and data['posy'] and data['unit_id']:
+        unit = {}
         unit['owner'] = data['owner']
         unit['posx'] = data['posx']
         unit['posy'] = data['posy']
@@ -46,9 +46,9 @@ def push():
 
     global units
 
-    if data['posx'] & data['posy'] & data['unit_id']:
-        for x in range(0, units.length):
-            if data['unit_id'] == units[x].unit_id:
+    if data['posx'] and data['posy'] and data['unit_id']:
+        for x in range(0, len(units)):
+            if data['unit_id'] == units[x]['unit_id']:
                 units[x]['posx'] = int(data['posx']);
                 units[x]['posy'] = int(data['posy']);
                 return 'success';
