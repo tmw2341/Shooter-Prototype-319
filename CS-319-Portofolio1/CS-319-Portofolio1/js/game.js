@@ -2,12 +2,30 @@ function startGame() {
     init();
     myGameArea.start();
     myGameArea.pieces.push(new component(30, 30, "red", 30, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
-    myGameArea.pieces.push(new component(30, 30, "red", 60, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
+    myGameArea.pieces.push(new component(30, 30, "red", 61, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
+    myGameArea.spawnPoint = new spawnPoint(90, 90, "blue", 15, 15, myGameArea.username, myGameArea.username + "spawn");
+    myGameArea.pieces.push(new component(30, 30, "red", 150, 150, "Steve", "Steve" + myGameArea.pieces.length));
+}
+
+function spawnPoint(width, height, color, x, y, owner, id) {
+    this.id = id;
+    this.owner = owner;
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.updateSpawn = function () {
+        ctx = myGameArea.context;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
 }
 
 var myGameArea = {
     username: localStorage.getItem('username'),
     pieces: [],
+    spawnPoint,
     canvas: null,
     start: function () {
         this.context = this.canvas.getContext('2d');
@@ -27,16 +45,36 @@ var myGameArea = {
             myGameArea.newY = null;
         })
         window.addEventListener('mousemove', function (e) {
-            for (i = 0; i < myGameArea.pieces.length; ++i){
+            for (let i = 0; i < myGameArea.pieces.length; ++i){
                 if (myGameArea.move && myGameArea.pieces[i].clicked()) {
                     myGameArea.newX = e.pageX;
                     myGameArea.newY = e.pageY;
-                } 
+                }
             }
         })
     },
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    },
+    boundaryCheck: function () {
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i].x <= 0) {
+                myGameArea.pieces[i].click = false;
+                myGameArea.pieces[i].x = 1;
+            }
+            if (myGameArea.pieces[i].x + myGameArea.pieces[i].width >= myGameArea.canvas.width) {
+                myGameArea.pieces[i].click = false;
+                myGameArea.pieces[i].x = myGameArea.canvas.width - 1 - + myGameArea.pieces[i].width;
+            }
+            if (myGameArea.pieces[i].y <= 0) {
+                myGameArea.pieces[i].click = false;
+                myGameArea.pieces[i].y = 1;
+            }
+            if (myGameArea.pieces[i].y + myGameArea.pieces[i].height >= myGameArea.canvas.height) {
+                myGameArea.pieces[i].click = false;
+                myGameArea.pieces[i].y = myGameArea.canvas.height - 1 - + myGameArea.pieces[i].height;
+            }
+        }
     }
 }
 
@@ -53,6 +91,7 @@ function component(width, height, color, x, y, username, id) {
     this.y = y;
     this.speedX = 0;
     this.speedY = 0;
+    this.click;
     this.color = color;
     this.update = function () {
         ctx = myGameArea.context;
@@ -70,20 +109,79 @@ function component(width, height, color, x, y, username, id) {
             console.log(this.id + " has been clicked");
             clicked = true;
         }
+        this.click = clicked;
         return clicked;
+    }
+    this.collide = function () {
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i] != this) {
+                if (this.collision(myGameArea.pieces[i])) {
+                    var myleft = this.x;
+                    var myright = this.x + (this.width);
+                    var mytop = this.y;
+                    var mybottom = this.y + (this.height);
+                    var otherleft = myGameArea.pieces[i].x;
+                    var otherright = myGameArea.pieces[i].x + (myGameArea.pieces[i].width);
+                    var othertop = myGameArea.pieces[i].y;
+                    var otherbottom = myGameArea.pieces[i].y + (myGameArea.pieces[i].height);
+                    console.log("There is a collision.")
+                    if (mybottom - othertop < 30) {
+                        this.y = this.y - 5;
+                    }
+                    if (mytop - otherbottom > -30) {
+                        this.y = this.y + 5;
+                    }
+                    if (myright - otherleft < 30) {
+                        this.x = this.x - 5;
+                    }
+                    if (myleft - otherright > -30) {
+                        this.x = this.x + 5;
+                    }
+                    this.update();
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    this.collision = function (otherobj) {
+        var myleft = this.x;
+        var myright = this.x + (this.width);
+        var mytop = this.y;
+        var mybottom = this.y + (this.height);
+        var otherleft = otherobj.x;
+        var otherright = otherobj.x + (otherobj.width);
+        var othertop = otherobj.y;
+        var otherbottom = otherobj.y + (otherobj.height);
+        var crash = true;
+        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
+            crash = false;
+        }
+        return crash;
     }
 }
 
+function newPiece() {
+    let newComp = new component(30, 30, "red", 45, 45, myGameArea.username, myGameArea.username + myGameArea.pieces.length);
+    for (let i = 0; i < myGameArea.pieces.length; i++) {
+        if (newComp.collision(myGameArea.pieces[i])) {
+            return;
+        }
+    }
+    myGameArea.pieces.push(newComp);
+}
+
 function posDebug() {
-    for (i = 0; i < myGameArea.pieces.length; ++i) {
+    for (let i = 0; i < myGameArea.pieces.length; ++i) {
         console.log(myGameArea.username + ": Box " + myGameArea.pieces[i].id + " is located at: " + myGameArea.pieces[i].x + " " + myGameArea.pieces[i].y);
     }
 }
 
 function updateGameArea() {
     myGameArea.clear();
-    for (i = 0; i < myGameArea.pieces.length; ++i){
-        if (myGameArea.pieces[i].clicked() && myGameArea.pieces[i].username == myGameArea.username) {
+    myGameArea.spawnPoint.updateSpawn();
+    for (let i = 0; i < myGameArea.pieces.length; ++i){
+        if (myGameArea.pieces[i].clicked() && !myGameArea.pieces[i].collide() && myGameArea.pieces[i].username == myGameArea.username) {
             myGameArea.pieces[i].color = "yellow";
             if (myGameArea.y < 0 || myGameArea.newY < 0 || myGameArea.x < 0 || myGameArea.newX < 0) {
                 break;
@@ -95,6 +193,8 @@ function updateGameArea() {
             myGameArea.pieces[i].y -= myGameArea.y - myGameArea.newY;
             myGameArea.x = myGameArea.newX;
             myGameArea.y = myGameArea.newY;
+            myGameArea.pieces[i].collide();
+            myGameArea.boundaryCheck();
         } else {
             myGameArea.pieces[i].color = "red";
         }
