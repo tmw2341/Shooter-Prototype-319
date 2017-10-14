@@ -4,7 +4,7 @@ function startGame() {
     myGameArea.pieces.push(new component(30, 30, "red", 30, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
     myGameArea.pieces.push(new component(30, 30, "red", 61, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
     myGameArea.spawnPoint = new spawnPoint(90, 90, "blue", 15, 15, myGameArea.username, myGameArea.username + "spawn");
-    myGameArea.pieces.push(new component(30, 30, "red", 150, 150, "Steve", "Steve" + myGameArea.pieces.length));
+    myGameArea.pieces.push(new component(30, 30, "green", 150, 150, "Steve", "Steve" + myGameArea.pieces.length));
 }
 
 function spawnPoint(width, height, color, x, y, owner, id) {
@@ -124,7 +124,7 @@ function component(width, height, color, x, y, username, id) {
                     var otherright = myGameArea.pieces[i].x + (myGameArea.pieces[i].width);
                     var othertop = myGameArea.pieces[i].y;
                     var otherbottom = myGameArea.pieces[i].y + (myGameArea.pieces[i].height);
-                    console.log("There is a collision.")
+                    console.log("There is a collision.");
                     if (mybottom - othertop < 30) {
                         this.y = this.y - 5;
                     }
@@ -138,6 +138,10 @@ function component(width, height, color, x, y, username, id) {
                         this.x = this.x + 5;
                     }
                     this.update();
+                    if (myGameArea.pieces[i].username != this.username) {
+                        myGameArea.pieces[1].delete();
+                        this.delete();
+                    }
                     return true;
                 }
             }
@@ -158,6 +162,13 @@ function component(width, height, color, x, y, username, id) {
             crash = false;
         }
         return crash;
+    }
+    this.delete = function () {
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i] = this) {
+                myGameArea.pieces.splice(i, 1);
+            }
+        }
     }
 }
 
