@@ -1,20 +1,28 @@
+<!DOCTYPE html>
 <html>
 	<head>
-		<script type="text/javascript" language="javascript">
-			function UserAction() {
-			    var xhttp = new XMLHttpRequest();
-			    xhttp.open("POST", "http://localhost:5000/", false);
-			    xhttp.setRequestHeader("Content-type", "application/json");
-			    xhttp.send();
-			    var response = JSON.parse(xhttp.responseText);
-			    document.getElementById("stuff").innerHTML = response
-			}
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script>
+		$(document).ready(function(){
+		    $("p").click(function(){
+			$.ajax({
+				url: "http://localhost:5000/",
+				crossDomain:true,
+				async:true
+			}).then(function(data) {
+				console.log("message recieved: " + data);
+				$('#greeting-content').append(data);
+			});
+	   	    });
+		 });
 		</script>
 	</head>
 	<body>
-		<center>
-		<button type="submit" onclick="UserAction()">Search</button>
-		<div id="stuff"> </div>
-		</center>
+
+		<p>Click on this paragraph.</p>
+		<div id="greeting-id"></div>
+		<div id="greeting-content"></div>
+
 	</body>
 </html>
+
