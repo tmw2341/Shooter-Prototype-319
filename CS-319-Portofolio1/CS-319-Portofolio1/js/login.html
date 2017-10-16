@@ -23,14 +23,6 @@
         Enter a username:
         <input type="text" name="userName" id="username" value=""/>
         <br />
-        <br />
-        <input type="radio" name="connection" id="ipRadio" /> Connect to:   <input type="text" name="ipAddress" id="ip"/>
-        <br />
-        <font size="1">Use the form XXX.XXX.XXX.XX</font>
-            <br /><font size="1">or XXX.XXX.XXX.XX:XXXXX</font>
-        <br />
-        <input type="radio" name="connection" id="host" /> Host
-        <br />
         <button type="button" onclick="
     if (validateUserName(document.getElementById('username').value));
     localStorage.setItem('username', document.getElementById('username').value);
