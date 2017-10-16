@@ -97,7 +97,7 @@ var myGameArea = {
     },
     fire: function () {
         for (let i = 0; i < myGameArea.pieces.length; i++) {
-            if (myGameArea.pieces[i].type == "piece" && myGameArea.pieces[i].username == "Steve") {
+            if (myGameArea.pieces[i].type == "piece" && myGameArea.pieces[i].username == this.username) {
                 myGameArea.pieces[i].newProjectile();
             }
         }
