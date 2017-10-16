@@ -1,10 +1,19 @@
 function startGame() {
     init();
+    setInterval(updatePieces, 200);
     myGameArea.start();
     myGameArea.newUser(localStorage.getItem('username'));
     myGameArea.newUser("Steve");
     myGameArea.newPiece();
     myGameArea.pieces.push(new component(30, 30, "green", 150, 150, "Steve", "Steve0"));
+}
+
+function updatePieces(){
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", "http://proj-319-p33.cs.iastate.edu/pull", true);
+    xhttp.setRequestHeader("Content-type", "application/json");
+    xhttp.send();
+    console.log(JSON.parse(xhttp.responseText));
 }
 
 function spawnPoint(width, height, color, x, y, owner, id) {

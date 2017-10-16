@@ -4,24 +4,50 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 		<script>
 		$(document).ready(function(){
-		    $("p").click(function(){
-			$.ajax({
-				url: "http://localhost:5000/",
-				crossDomain:true,
-				async:true
-			}).then(function(data) {
-				console.log("message recieved: " + data);
-				$('#greeting-content').append(data);
-			});
+		    $('#test').click(function(){
+				$.ajax({
+					url: "http://localhost:5000/",
+					crossDomain:true,
+					async:true
+				}).then(function(data) {
+					console.log("message recieved: " + data);
+					$('#greeting-content').append(data);
+				});
 	   	    });
-		 });
+			$('#pull').click(function(){
+                $.ajax({
+                    url: "http://localhost:5000/pull",
+                    crossDomain:true,
+                    async:true
+                }).then(function(data) {
+                    console.log("message recieved: " + data);
+                    $('#pull-data').append(data['results'][0]['owner']);
+                });
+			});
+            $('#add_uit').click(function(){
+                $.ajax({
+					type: "POST",
+                    url: "http://localhost:5000/new_unit",
+					//dataType: JSON,
+					data: {"unit_id":1,"owner":"player1","posx":1,"posy":2,"type":"other"},
+                    crossDomain:true,
+                    async:true
+                }).then(function(data) {
+                    console.log("message recieved: " + data);
+                    $('#pull-data').append(data);
+                });
+            });
+		});
 		</script>
 	</head>
 	<body>
 
-		<p>Click on this paragraph.</p>
+		<p id="test">Click on this paragraph.</p>
+		<p id="pull">Click here to pull</p>
+		<p id="add_uit">Click here to add unit</p>
 		<div id="greeting-id"></div>
 		<div id="greeting-content"></div>
+		<div id="pull-data"></div>
 
 	</body>
 </html>
