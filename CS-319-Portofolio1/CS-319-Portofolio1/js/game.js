@@ -1,16 +1,37 @@
 function startGame() {
     init();
     myGameArea.start();
-    myGameArea.pieces.push(new component(30, 30, "red", 30, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
-    myGameArea.pieces.push(new component(30, 30, "red", 60, 30, myGameArea.username, myGameArea.username + myGameArea.pieces.length));
+    myGameArea.newPiece();
+    myGameArea.spawnPoint = new spawnPoint(90, 90, "blue", 15, 15, myGameArea.username, myGameArea.username + "spawn");
+    myGameArea.pieces.push(new component(30, 30, "green", 150, 150, "Steve", "Steve" + myGameArea.pieces.length));
+}
+
+function spawnPoint(width, height, color, x, y, owner, id) {
+    this.id = id;
+    this.owner = owner;
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;
+    this.color = color;
+    this.updateSpawn = function () {
+        ctx = myGameArea.context;
+        ctx.fillStyle = this.color;
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
 }
 
 var myGameArea = {
     username: localStorage.getItem('username'),
     pieces: [],
+    spawnPoint,
+    numPiece: 0,
+    projNum: 0,
+    color: null,
     canvas: null,
     start: function () {
         this.context = this.canvas.getContext('2d');
+        this.color = "red";
         this.interval = setInterval(updateGameArea, 20);
         window.addEventListener('mousedown', function (e) {
             if (e.pageX > 0 && e.pageY > 0) {
@@ -27,16 +48,43 @@ var myGameArea = {
             myGameArea.newY = null;
         })
         window.addEventListener('mousemove', function (e) {
-            for (i = 0; i < myGameArea.pieces.length; ++i){
+            for (let i = 0; i < myGameArea.pieces.length; ++i){
                 if (myGameArea.move && myGameArea.pieces[i].clicked()) {
                     myGameArea.newX = e.pageX;
                     myGameArea.newY = e.pageY;
-                } 
+                }
             }
         })
     },
     clear: function () {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    },
+    boundaryCheck: function () {
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i].x <= 0) {
+                myGameArea.pieces[i].x = 1;
+            }
+            if (myGameArea.pieces[i].x + myGameArea.pieces[i].width >= myGameArea.canvas.width) {
+                myGameArea.pieces[i].x = myGameArea.canvas.width - 1 - + myGameArea.pieces[i].width;
+            }
+            if (myGameArea.pieces[i].y <= 0) {
+                myGameArea.pieces[i].y = 1;
+            }
+            if (myGameArea.pieces[i].y + myGameArea.pieces[i].height >= myGameArea.canvas.height) {
+                myGameArea.pieces[i].y = myGameArea.canvas.height - 1 - + myGameArea.pieces[i].height;
+            }
+        }
+    },
+    newPiece: function () {
+        let newComp = new component(30, 30, this.color, 45, 45, this.username, this.username + this.numPiece);
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (newComp.collision(myGameArea.pieces[i])) {
+                return;
+            }
+        }
+        ++this.numPiece;
+        myGameArea.pieces.push(newComp);
+        setInterval(newComp.newProjectile, 1000);
     }
 }
 
@@ -47,14 +95,39 @@ function init(){
 function component(width, height, color, x, y, username, id) {
     this.id = id;
     this.username = username;
+    this.type = "piece";
     this.width = width;
     this.height = height;
     this.x = x;
     this.y = y;
     this.speedX = 0;
     this.speedY = 0;
+    this.defaultColor = color;
     this.color = color;
+    //setInterval(this.newProjectile, 1000);
+    this.newProjectile = function () {
+        let selectedPiece;
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i].type = "piece") {
+                if (myGameArea.pieces[i].username != this.username && myGameArea.pieces[i].uername != undefined) {
+                    let randomBoolean = Math.random() >= 0.5;
+                    if (randomBoolean) {
+                        selectedPiece = myGameArea.pieces[i];
+                        break;
+                    }
+                }
+            }
+        }
+        if (selectedPiece != undefined) {
+            ++myGameArea.projNum;
+            myGameArea.pieces.push(new projectile(this.x, this.y, this.username, this.username + "proj" + myGameArea.projNum, selectedPiece.x, selectedPiece.y));
+        }
+    }
     this.update = function () {
+        if (isNaN(this.x) && isNaN(this.y)) {
+            this.x = 45;
+            this.y = 45;
+        }
         ctx = myGameArea.context;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -72,32 +145,164 @@ function component(width, height, color, x, y, username, id) {
         }
         return clicked;
     }
+    this.collide = function () {
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i] != this) {
+                if (this.collision(myGameArea.pieces[i])) {
+                    if (myGameArea.pieces[i].username != this.username) {
+                        myGameArea.pieces[i].delete();
+                        this.delete();
+                    } else {
+                        let myleft = this.x;
+                        let myright = this.x + (this.width);
+                        let mytop = this.y;
+                        let mybottom = this.y + (this.height);
+                        let otherleft = myGameArea.pieces[i].x;
+                        let otherright = myGameArea.pieces[i].x + (myGameArea.pieces[i].width);
+                        let othertop = myGameArea.pieces[i].y;
+                        let otherbottom = myGameArea.pieces[i].y + (myGameArea.pieces[i].height);
+                        console.log("There is a collision.");
+                        if (mybottom - othertop < 30) {
+                            this.y = this.y - 5;
+                        }
+                        if (mytop - otherbottom > -30) {
+                            this.y = this.y + 5;
+                        }
+                        if (myright - otherleft < 30) {
+                            this.x = this.x - 5;
+                        }
+                        if (myleft - otherright > -30) {
+                            this.x = this.x + 5;
+                        }
+                        this.update();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    this.collision = function (otherobj) {
+        let myleft = this.x;
+        let myright = this.x + (this.width);
+        let mytop = this.y;
+        let mybottom = this.y + (this.height);
+        let otherleft = otherobj.x;
+        let otherright = otherobj.x + (otherobj.width);
+        let othertop = otherobj.y;
+        let otherbottom = otherobj.y + (otherobj.height);
+        let crash = true;
+        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
+            crash = false;
+        }
+        return crash;
+    }
+    this.delete = function () {
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i].x == this.x && myGameArea.pieces[i].y == this.y ) {
+                myGameArea.pieces.splice(i, 1);
+            }
+        }
+    }
+}
+
+function projectile(x, y, username, id, targetX, targetY) {
+    this.x = x;
+    this.y = y;
+    this.width = 10;
+    this.height = 10;
+    this.username = username;
+    this.id = id;
+    this.color = "black";
+    this.type = 'projectile';
+    this.targetX = targetX;
+    this.targetY = targetY;
+    this.speedX = targetX / 100;
+    this.speedY = targetY / 100;
+    this.update = function () {
+        ctx = myGameArea.context;
+        ctx.fillStyle = this.color;
+        this.newPos();
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+    this.newPos = function () {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > myGameArea.canvas.width || this.y < 0 || this.y > myGameArea.canvas.height || isNaN(this.x) || isNaN(this.y)) {
+            this.delete();
+        }
+    }
+    this.collide = function () {
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i] != this) {
+                if (this.collision(myGameArea.pieces[i])) {
+                    if (myGameArea.pieces[i].username != this.username) {
+                        myGameArea.pieces[i].delete();
+                        this.delete();
+                    } else {
+                        console.log("There is a collision.");
+                        this.update();
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    this.collision = function (otherobj) {
+        let myleft = this.x;
+        let myright = this.x + (this.width);
+        let mytop = this.y;
+        let mybottom = this.y + (this.height);
+        let otherleft = otherobj.x;
+        let otherright = otherobj.x + (otherobj.width);
+        let othertop = otherobj.y;
+        let otherbottom = otherobj.y + (otherobj.height);
+        let crash = true;
+        if ((mybottom < othertop) || (mytop > otherbottom) || (myright < otherleft) || (myleft > otherright)) {
+            crash = false;
+        }
+        return crash;
+    }
+    this.clicked = function () {
+        return false;
+    }
+    this.delete = function () {
+        for (let i = 0; i < myGameArea.pieces.length; i++) {
+            if (myGameArea.pieces[i].x == this.x && myGameArea.pieces[i].y == this.y) {
+                myGameArea.pieces.splice(i, 1);
+            }
+        }
+    }
 }
 
 function posDebug() {
-    for (i = 0; i < myGameArea.pieces.length; ++i) {
+    for (let i = 0; i < myGameArea.pieces.length; ++i) {
         console.log(myGameArea.username + ": Box " + myGameArea.pieces[i].id + " is located at: " + myGameArea.pieces[i].x + " " + myGameArea.pieces[i].y);
     }
 }
 
 function updateGameArea() {
     myGameArea.clear();
-    for (i = 0; i < myGameArea.pieces.length; ++i){
-        if (myGameArea.pieces[i].clicked() && myGameArea.pieces[i].username == myGameArea.username) {
-            myGameArea.pieces[i].color = "yellow";
-            if (myGameArea.y < 0 || myGameArea.newY < 0 || myGameArea.x < 0 || myGameArea.newX < 0) {
-                break;
+    myGameArea.spawnPoint.updateSpawn();
+    for (let i = 0; i < myGameArea.pieces.length; ++i) {
+            if (myGameArea.pieces[i].clicked() && !myGameArea.pieces[i].collide() && myGameArea.pieces[i].username == myGameArea.username) {
+                myGameArea.pieces[i].color = "yellow";
+                if (myGameArea.y < 0 || myGameArea.newY < 0 || myGameArea.x < 0 || myGameArea.newX < 0) {
+                    break;
+                }
+                if (Math.abs(myGameArea.y - myGameArea.newY) > 50 || Math.abs(myGameArea.x - myGameArea.newX) > 50) {
+                    break;
+                }
+                myGameArea.pieces[i].x -= myGameArea.x - myGameArea.newX;
+                myGameArea.pieces[i].y -= myGameArea.y - myGameArea.newY;
+                myGameArea.x = myGameArea.newX;
+                myGameArea.y = myGameArea.newY;
+                myGameArea.pieces[i].collide();
+                myGameArea.boundaryCheck();
+            } else {
+                myGameArea.pieces[i].color = myGameArea.pieces[i].defaultColor;
             }
-            if (Math.abs(myGameArea.y - myGameArea.newY) > 50 || Math.abs(myGameArea.x - myGameArea.newX) > 50) {
-                break;
-            }
-            myGameArea.pieces[i].x -= myGameArea.x - myGameArea.newX;
-            myGameArea.pieces[i].y -= myGameArea.y - myGameArea.newY;
-            myGameArea.x = myGameArea.newX;
-            myGameArea.y = myGameArea.newY;
-        } else {
-            myGameArea.pieces[i].color = "red";
+            myGameArea.pieces[i].update();
         }
-        myGameArea.pieces[i].update();
-    }
 }
