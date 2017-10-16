@@ -16,6 +16,7 @@ function spawnPoint(width, height, color, x, y, owner, id) {
     this.y = y;
     this.color = color;
     this.updateSpawn = function () {
+        //TODO Add server update
         ctx = myGameArea.context;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
@@ -78,6 +79,7 @@ var myGameArea = {
         }
     },
     newPiece: function () {
+        //TODO Add Server Code
         let locationX;
         let locationY;
         for (let i = 0; i < myGameArea.spawnPoints.length; i++) {
@@ -104,6 +106,7 @@ var myGameArea = {
     },
     newUser: function (name) {
         if (myGameArea.users.indexOf(name) == -1) {
+            //TODO Add server code
             let index = myGameArea.users.length;
             let newSpawn;
             switch (index) {
@@ -149,7 +152,9 @@ function component(width, height, color, x, y, username, id) {
     this.speedY = 0;
     this.defaultColor = color;
     this.color = color;
+    this.clickCounter = 0;
     this.newProjectile = function () {
+//TODO Add Server Code
         let selectedPiece;
         console.log("Pew!!");
         for (let i = 0; i < myGameArea.pieces.length; i++) {
@@ -170,6 +175,7 @@ function component(width, height, color, x, y, username, id) {
         }
     }
     this.update = function () {
+        //TODO Server code
         if (isNaN(this.x) && isNaN(this.y)) {
             this.x = this.prevX;
             this.y = this.prevY;
@@ -188,6 +194,10 @@ function component(width, height, color, x, y, username, id) {
             && (myright > myGameArea.x) && (myleft < myGameArea.x)) {
             console.log(this.id + " has been clicked");
             clicked = true;
+        }
+        clickCounter++;
+        if (clickCounter % 3 == 0) {
+            //TODO Add unit update here.
         }
         return clicked;
     }
@@ -247,6 +257,7 @@ function component(width, height, color, x, y, username, id) {
         for (let i = 0; i < myGameArea.pieces.length; i++) {
             if (myGameArea.pieces[i].x == this.x && myGameArea.pieces[i].y == this.y ) {
                 myGameArea.pieces.splice(i, 1);
+                //TODO Add delete server code
             }
         }
     }
@@ -267,6 +278,7 @@ function projectile(x, y, username, id, targetX, targetY) {
     this.speedX = (targetX - x)/ 100;
     this.speedY = (targetY - y)/ 100;
     this.update = function () {
+        //Add server Code
         ctx = myGameArea.context;
         ctx.fillStyle = this.color;
         this.newPos();
@@ -319,6 +331,7 @@ function projectile(x, y, username, id, targetX, targetY) {
         for (let i = 0; i < myGameArea.pieces.length; i++) {
             if (myGameArea.pieces[i] == this) {
                 myGameArea.pieces.splice(i, 1);
+                //TODO Add delete server code
             }
         }
     }
