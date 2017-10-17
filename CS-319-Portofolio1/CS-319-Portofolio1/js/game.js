@@ -204,8 +204,8 @@ function component(width, height, color, x, y, username, id) {
             console.log(this.id + " has been clicked");
             clicked = true;
         }
-        clickCounter++;
-        if (clickCounter % 3 == 0) {
+        this.clickCounter++;
+        if (this.clickCounter % 3 == 0) {
             //TODO Add unit update here.
         }
         return clicked;
