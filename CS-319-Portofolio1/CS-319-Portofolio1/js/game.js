@@ -1,20 +1,51 @@
 function startGame() {
     init();
-    setInterval(updatePieces, 200);
     myGameArea.start();
     myGameArea.newUser(localStorage.getItem('username'));
     myGameArea.newUser("Steve");
     myGameArea.newPiece();
-    myGameArea.pieces.push(new component(30, 30, "green", 150, 150, "Steve", "Steve0"));
-}
+    tmp = new component(30, 30, "green", 150, 150, "Steve", "Steve0");
+    myGameArea.pieces.push(tmp);
+    newPieceServer(tmp);
+};
 
 function updatePieces(){
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", "http://proj-319-p33.cs.iastate.edu/pull", true);
-    xhttp.setRequestHeader("Content-type", "application/json");
-    xhttp.send();
-    console.log(JSON.parse(xhttp.responseText));
-}
+    $.ajax({
+        url: "http://localhost:5000/pull",
+        crossDomain:true,
+        async:true
+    }).then(function(data) {
+        myGameArea.updatePieces(data['results']);
+    });
+};
+
+function newPieceServer(piece) {
+    console.log("new piece called");
+    console.log(piece);
+    $.ajax({
+        type: "POST",
+        url: "http://localhost:5000/new_unit",
+        data: piece,
+        crossDomain:true,
+        async:true
+    }).then(function(data) {
+        console.log(data);
+    });
+};
+
+function updatePiecePos(piece) {
+    console.log("update piece called");
+    console.log(piece);
+    $.ajax({
+        type: "POST",
+        url: "http://localhost:5000/push",
+        data: piece,
+        crossDomain:true,
+        async:true
+    }).then(function(data) {
+        // No action required for this
+    });
+};
 
 function spawnPoint(width, height, color, x, y, owner, id) {
     this.id = id;
@@ -30,7 +61,7 @@ function spawnPoint(width, height, color, x, y, owner, id) {
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
-}
+};
 
 var myGameArea = {
     username: localStorage.getItem('username'),
@@ -41,10 +72,18 @@ var myGameArea = {
     projNum: 0,
     color: null,
     canvas: null,
+    updatePieces: function(newval) {
+        // this.pieces = newval;
+        for(i=0; i < newval.length; i++) {
+            this.pieces[i].x = newval[i].x
+            this.pieces[i].y = newval[i].y
+        }
+    },
     start: function () {
         this.context = this.canvas.getContext('2d');
         this.color = "red";
         this.interval = setInterval(updateGameArea, 20);
+        this.interval2 = setInterval(updatePieces, 1000);
         window.addEventListener('mousedown', function (e) {
             if (e.pageX > 0 && e.pageY > 0) {
                 myGameArea.move = true;
@@ -88,7 +127,6 @@ var myGameArea = {
         }
     },
     newPiece: function () {
-        //TODO Add Server Code
         let locationX;
         let locationY;
         for (let i = 0; i < myGameArea.spawnPoints.length; i++) {
@@ -104,6 +142,8 @@ var myGameArea = {
             }
         }
         ++this.numPiece;
+        console.log(newComp);
+        newPieceServer(newComp);
         myGameArea.pieces.push(newComp);
     },
     fire: function () {
@@ -115,7 +155,6 @@ var myGameArea = {
     },
     newUser: function (name) {
         if (myGameArea.users.indexOf(name) == -1) {
-            //TODO Add server code
             let index = myGameArea.users.length;
             let newSpawn;
             switch (index) {
@@ -141,11 +180,11 @@ var myGameArea = {
             console.log("User: " + name + " already exists.")
         }
     }
-}
+};
 
 function init(){
     myGameArea.canvas = document.getElementById('canvas');
-}
+};
 
 function component(width, height, color, x, y, username, id) {
     this.id = id;
@@ -163,7 +202,6 @@ function component(width, height, color, x, y, username, id) {
     this.color = color;
     this.clickCounter = 0;
     this.newProjectile = function () {
-//TODO Add Server Code
         let selectedPiece;
         console.log("Pew!!");
         for (let i = 0; i < myGameArea.pieces.length; i++) {
@@ -180,9 +218,11 @@ function component(width, height, color, x, y, username, id) {
         if (selectedPiece != undefined) {
             ++myGameArea.projNum;
             let toAdd = new projectile(this.x + (this.width / 2), this.y + (this.height / 2), this.username, this.username + "proj" + myGameArea.projNum, selectedPiece.x + (selectedPiece.width / 2), selectedPiece.y + (selectedPiece.height / 2))
+            newPieceServer(toAdd);
             myGameArea.pieces.push(toAdd);
         }
-    }
+    };
+
     this.update = function () {
         //TODO Server code
         if (isNaN(this.x) && isNaN(this.y)) {
@@ -192,7 +232,8 @@ function component(width, height, color, x, y, username, id) {
         ctx = myGameArea.context;
         ctx.fillStyle = this.color;
         ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
+    };
+
     this.clicked = function () {
         let myleft = this.x + myGameArea.canvas.getBoundingClientRect().left;
         let myright = this.x + ((this.width) + myGameArea.canvas.getBoundingClientRect().left);
@@ -209,7 +250,8 @@ function component(width, height, color, x, y, username, id) {
             //TODO Add unit update here.
         }
         return clicked;
-    }
+    };
+
     this.collide = function () {
         for (let i = 0; i < myGameArea.pieces.length; i++) {
             if (myGameArea.pieces[i] != this) {
@@ -246,8 +288,16 @@ function component(width, height, color, x, y, username, id) {
             }
         }
         return false;
-    }
+    };
+
     this.collision = function (otherobj) {
+        try {
+            if(otherobj == null) { throw error()}
+        } catch(err) {
+            console.log(err.message);
+            return false;
+        }
+
         let myleft = this.x;
         let myright = this.x + (this.width);
         let mytop = this.y;
@@ -261,7 +311,8 @@ function component(width, height, color, x, y, username, id) {
             crash = false;
         }
         return crash;
-    }
+    };
+
     this.delete = function () {
         for (let i = 0; i < myGameArea.pieces.length; i++) {
             if (myGameArea.pieces[i].x == this.x && myGameArea.pieces[i].y == this.y ) {
@@ -269,7 +320,7 @@ function component(width, height, color, x, y, username, id) {
                 //TODO Add delete server code
             }
         }
-    }
+    };
 }
 
 function projectile(x, y, username, id, targetX, targetY) {
@@ -292,14 +343,19 @@ function projectile(x, y, username, id, targetX, targetY) {
         ctx.fillStyle = this.color;
         this.newPos();
         ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
+    };
+
     this.newPos = function () {
         this.x += this.speedX;
         this.y += this.speedY;
         if (this.x < 0 || this.x > myGameArea.canvas.width || this.y < 0 || this.y > myGameArea.canvas.height) {
             this.delete();
+            //TODO Delete from server
+        } else {
+            updatePiecePos(this);
         }
-    }
+    };
+
     this.collide = function () {
         for (let i = 0; i < myGameArea.pieces.length; i++) {
             if (myGameArea.pieces[i] != this && myGameArea.pieces[i].type == "piece") {
@@ -316,7 +372,8 @@ function projectile(x, y, username, id, targetX, targetY) {
             }
         }
         return false;
-    }
+    };
+
     this.collision = function (otherobj) {
         let myleft = this.x;
         let myright = this.x + (this.width);
@@ -332,10 +389,12 @@ function projectile(x, y, username, id, targetX, targetY) {
             crash = false;
         }
         return crash;
-    }
+    };
+
     this.clicked = function () {
         return false;
-    }
+    };
+
     this.delete = function () {
         for (let i = 0; i < myGameArea.pieces.length; i++) {
             if (myGameArea.pieces[i] == this) {
@@ -343,14 +402,14 @@ function projectile(x, y, username, id, targetX, targetY) {
                 //TODO Add delete server code
             }
         }
-    }
+    };
 }
 
 function posDebug() {
     for (let i = 0; i < myGameArea.pieces.length; ++i) {
         console.log(myGameArea.username + ": Box " + myGameArea.pieces[i].username + " is located at: " + myGameArea.pieces[i].x + " " + myGameArea.pieces[i].y);
     }
-}
+};
 
 function updateGameArea() {
     myGameArea.clear();

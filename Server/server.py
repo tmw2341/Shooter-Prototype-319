@@ -31,13 +31,8 @@ def new_unt():
     global units
 
     try:
-        if data['owner'] and data['posx'] and data['posy'] and data['unit_id'] and data['type']:
-            unit = {}
-            unit['owner'] = data['owner']
-            unit['posx'] = data['posx']
-            unit['posy'] = data['posy']
-            unit['unit_id'] = data['unit_id']
-            unit['type'] = data['type']
+        if data['username'] and data['x'] and data['y'] and data['id'] and data['type'] and data['color']:
+            unit = data
             units.append(unit);
             return "success"
     except KeyError:
@@ -51,16 +46,16 @@ def new_unt():
 @app.route('/push', methods=['POST'])
 def push():
     # print "data: " + str(request.args);
-    data = request.args
+    data = request.values
     # dataDict = json.loads(data)
 
     global units
 
-    if data['posx'] and data['posy'] and data['unit_id']:
+    if data['x'] and data['y'] and data['id']:
         for x in range(0, len(units)):
-            if data['unit_id'] == units[x]['unit_id']:
-                units[x]['posx'] = int(data['posx']);
-                units[x]['posy'] = int(data['posy']);
+            if data['id'] == units[x]['id']:
+                units[x]['x'] = int(data['x']);
+                units[x]['y'] = int(data['y']);
                 return 'success';
     return "fail";
 
@@ -68,15 +63,15 @@ def push():
 @app.route('/remove', methods=['POST'])
 def remove():
     # print "data: " + str(request.args);
-    data = request.args
+    data = request.values
     # dataDict = json.loads(data)
 
     global units
 
-    if data['unit_id']:
+    if data['id']:
         for x in range(0, len(units)):
-            if data['unit_id'] == units[x]['unit_id']:
-                units[x] = None
+            if data['id'] == units[x]['id']:
+                del units[x]# = None
                 return 'success'
         return "Unit not found"
     return "fail";

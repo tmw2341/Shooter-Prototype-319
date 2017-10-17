@@ -29,11 +29,12 @@
 					type: "POST",
                     url: "http://localhost:5000/new_unit",
 					//dataType: JSON,
-					data: {"unit_id":1,"owner":"player1","posx":1,"posy":2,"type":"other"},
+					data: {"color": "red", "id":1,"user":"player1","x":1,"y":2,"type":"other", "speedx":0,"speedy":0},
                     crossDomain:true,
                     async:true
                 }).then(function(data) {
-                    console.log("message recieved: " + data);
+                    console.log("message recieved: " );
+                    console.log(data);
                     $('#pull-data').append(data);
                 });
             });
